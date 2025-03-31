@@ -25,7 +25,7 @@ struct AppSearchSwiftUIApp: App {
     
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            SearchView(SearchViewModel())
         }
         .modelContainer(sharedModelContainer)
     }

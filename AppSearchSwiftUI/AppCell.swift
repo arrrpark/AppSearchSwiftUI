@@ -8,21 +8,25 @@
 import SwiftUI
 
 struct AppCell: View {
+    
+    let appInfo: AppInfo
+    
     var body: some View {
         VStack {
             HStack {
                 Image(systemName: "")
                     .frame(width: 60, height: 60)
                     .background(.yellow)
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("Moe Can Change")
+                VStack(alignment: .leading) {
+                    Text(appInfo.trackCensoredName)
                         .font(.system(size: 15))
                         .bold()
-                    Text("Games, simulation Games, simulation")
+                    Text("")
+                    Text(appInfo.genres.genresString)
                         .font(.system(size: 13))
                         .foregroundStyle(.gray)
                 }
-                .frame(width: .infinity, height: 60)
+                .frame(height: 60)
                 Spacer()
                 Button(action: { }) {
                     Text("Download")
@@ -44,7 +48,7 @@ struct AppCell: View {
     }
 }
 
-#Preview {
-    AppCell()
-}
+//#Preview {
+//    AppCell(appInfo: AppIn)
+//}
 
