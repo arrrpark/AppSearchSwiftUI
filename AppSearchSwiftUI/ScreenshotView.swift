@@ -11,8 +11,15 @@ import Kingfisher
 struct ScreenshotImageView: View {
     
     let url: URL
+    let baseWidth: CGFloat
+    @State var imageSize: CGSize
     @State var image: Image?
-    @State var imageSize: CGSize = CGSize(width: 140, height: 140 * 1.75)
+    
+    init(url: URL, baseWidth: CGFloat) {
+        self.url = url
+        self.baseWidth = baseWidth
+        self.imageSize = CGSize(width: baseWidth, height: baseWidth * 1.75)
+    }
     
     var body: some View {
         VStack {
@@ -34,24 +41,21 @@ struct ScreenshotImageView: View {
         .frame(width: imageSize.width, height: imageSize.height)
         .onAppear {
             Task {
-//                try? await KingfisherManager.shared.retrieveImage(with: url)
                 guard let loadedImage = try? await KingfisherManager.shared.retrieveImage(with: url) else {
                     return
                 }
                 
-//                loadedImage.image.size
-//                let size = loadedImage.size
-//                let ratio = size.height / size.width
-//                
-//                if ratio > 1 {
-//                    imageSize = CGSize(width: 140, height: 140 * ratio)
-//                } else {
-//                    imageSize = CGSize(width: 140 * ratio, height: 140)
-//                }
-//
-//                print(imageSize)
+                let size = loadedImage.image.size
+                let ratio = size.height / size.width
+
+                var imageWidth: CGFloat = 0
+                var imageHeight: CGFloat = 0
+                
+                imageWidth = baseWidth
+                imageHeight = baseWidth * ratio
+                
+                imageSize = CGSize(width: imageWidth, height: imageHeight)
                 image = Image(uiImage: loadedImage.image)
-//                imageSize = loadedImage.size
             }
         }
     }

@@ -8,6 +8,6 @@
 import SwiftUI
 
 enum Route: Hashable {
-    case detail
+    case detail(AppInfo)
     case home
 }

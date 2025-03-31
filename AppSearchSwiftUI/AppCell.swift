@@ -42,7 +42,8 @@ struct AppCell: View {
                     Text("Download")
                         .font(.system(size: 15) )
                         .bold()
-                        .padding(7)
+                        .padding(.vertical, 5)
+                        .padding(.horizontal, 10)
                         .background(Color(UIColor.systemGray6))
                         .cornerRadius(15)
                 }
@@ -51,26 +52,13 @@ struct AppCell: View {
             ScrollView(.horizontal) {
                 HStack {
                     ForEach(appInfo.screenshotUrls, id: \.self) { url in
-//                        Image(systemName: "")
-//                            .frame(width: 200, height:300)
-//                            .background(.orange)
                         if let url = URL(string: url) {
-                            ScreenshotImageView(url: url)
+                            ScreenshotImageView(url: url, baseWidth: 140)
                         }
                     }
                 }
             }
             .scrollIndicators(.hidden)
-        }
-    }
-    
-    private func calculateImageSize(for image: Image) {
-        Task {
-            if let uiImage = image.uiImage {
-                print(imageSize)
-                
-                imageSize = CGSize(width: uiImage.size.width / 2, height: uiImage.size.height / 2)
-            }
         }
     }
 }

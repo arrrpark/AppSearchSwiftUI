@@ -30,7 +30,6 @@ struct SearchView: View {
                         .padding(5)
                     TextField("Games, apps, stories and more", text: $searchViewModel.searchWord)
                         .onSubmit {
-                            print("done pressed")
                             Task {
                                 try? await searchViewModel.searchApps()
                             }
@@ -42,22 +41,37 @@ struct SearchView: View {
                 
                 ScrollView {
                     LazyVGrid(columns: columns, spacing: 20) {
-                        ForEach(searchViewModel.appInfo, id: \.self) { appInfo in
+                        ForEach(0..<searchViewModel.appInfo.count, id: \.self) { index in
+                            let appInfo = searchViewModel.appInfo[index]
                             AppCell(appInfo: appInfo)
+                                .onTapGesture {
+                                    searchViewModel.goToDetail(appInfo)
+                                }
+                            
+                            if index == searchViewModel.appInfo.count - 1 {
+                                Color.clear
+                                    .frame(height: 1)
+                                    .onAppear {
+                                        Task {
+                                            print("last touched")
+                                            try? await searchViewModel.fetchMore()
+                                        }
+                                    }
+                            }
                         }
                     }
                 }
                 .scrollIndicators(.hidden)
                 .padding(.horizontal, 20)
-                Text("")
+                Color.clear.frame(height: 1)
             }
-        }
-        .navigationDestination(for: Route.self) { route in
-            switch route {
-            case .detail:
-                DetailView()
-            case .home:
-                SearchView(searchViewModel)
+            .navigationDestination(for: Route.self) { route in
+                switch route {
+                case .detail(let appInfo):
+                    DetailView(appInfo: appInfo)
+                case .home:
+                    SearchView(searchViewModel)
+                }
             }
         }
     }
