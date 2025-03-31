@@ -19,37 +19,46 @@ struct SearchView: View {
         _searchViewModel = StateObject(wrappedValue: searchViewModel)
     }
     
-    var data = ["1","2","3","4","5","6","7"]
     let columns = [GridItem(.flexible())]
     
     var body: some View {
-        VStack(spacing: 20) {
-            HStack {
-                Image(systemName: "magnifyingglass")
-                    .foregroundStyle(.gray)
-                    .padding(5)
-                TextField("Games, apps, stories and more", text: $searchViewModel.searchWord)
-                    .onSubmit {
-                        print("done pressed")
-                        Task {
-                            try? await searchViewModel.searchApps()
+        NavigationStack(path: $searchViewModel.path) {
+            VStack(spacing: 20) {
+                HStack {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundStyle(.gray)
+                        .padding(5)
+                    TextField("Games, apps, stories and more", text: $searchViewModel.searchWord)
+                        .onSubmit {
+                            print("done pressed")
+                            Task {
+                                try? await searchViewModel.searchApps()
+                            }
+                        }
+                }
+                .background(Color(UIColor.systemGray5))
+                .padding(.horizontal, 20)
+                .padding(.top, 10)
+                
+                ScrollView {
+                    LazyVGrid(columns: columns, spacing: 20) {
+                        ForEach(searchViewModel.appInfo, id: \.self) { appInfo in
+                            AppCell(appInfo: appInfo)
                         }
                     }
-            }
-            .background(Color(UIColor.systemGray5))
-            .padding(.horizontal, 20)
-            .padding(.top, 10)
-            
-            ScrollView {
-                LazyVGrid(columns: columns, spacing: 20) {
-                    ForEach(searchViewModel.appInfo, id: \.self) { appInfo in
-                        AppCell(appInfo: appInfo)
-                    }
                 }
+                .scrollIndicators(.hidden)
+                .padding(.horizontal, 20)
+                Text("")
             }
-            .scrollIndicators(.hidden)
-            .padding(.horizontal, 20)
-            Text("")
+        }
+        .navigationDestination(for: Route.self) { route in
+            switch route {
+            case .detail:
+                DetailView()
+            case .home:
+                SearchView(searchViewModel)
+            }
         }
     }
 }

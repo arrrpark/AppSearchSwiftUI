@@ -10,6 +10,15 @@ import SwiftUI
 class SearchViewModel: ObservableObject {
     @Published var searchWord: String = ""
     @Published var appInfo: [AppInfo] = []
+    @Published var path = NavigationPath()
+    
+    func goToDetail() {
+        path.append(Route.detail)
+    }
+    
+    func goBack() {
+        path.removeLast()
+    }
     
     @MainActor
     func searchApps() async throws {
@@ -26,4 +35,5 @@ class SearchViewModel: ObservableObject {
         
         appInfo = searchResult.results
     }
+    
 }
