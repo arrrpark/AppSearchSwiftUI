@@ -12,8 +12,6 @@ struct DetailView: View {
     
     let appInfo: AppInfo
     
-    @EnvironmentObject private var searchViewModel: SearchViewModel
-    
     var body: some View {
         ScrollView {
             VStack(spacing: 10) {
@@ -52,7 +50,6 @@ struct DetailView: View {
                             if let url = URL(string: url) {
                                 ScreenshotImageView(url: url, baseWidth: 300)
                             }
-                            
                         }
                     }
                 }

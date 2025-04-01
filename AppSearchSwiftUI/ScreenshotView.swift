@@ -54,6 +54,11 @@ struct ScreenshotImageView: View {
                 imageWidth = baseWidth
                 imageHeight = baseWidth * ratio
                 
+                if ratio < 1 {
+                    imageWidth *= 1.5
+                    imageHeight *= 1.5
+                }
+                
                 imageSize = CGSize(width: imageWidth, height: imageHeight)
                 image = Image(uiImage: loadedImage.image)
             }

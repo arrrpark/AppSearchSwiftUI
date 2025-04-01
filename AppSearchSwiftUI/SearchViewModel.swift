@@ -6,16 +6,20 @@
 //
 
 import SwiftUI
+import SwiftData
 
 class SearchViewModel: ObservableObject {
     @Published var searchWord: String = ""
     @Published var appInfo: [AppInfo] = []
     @Published var path = NavigationPath()
-    
+    @Published var words: [Word] = []
+
     var offset = 0
     var lastWord = ""
     var lastReached = false
     var isFetching = false
+    
+    var wordDAO: WordDAO? = nil
     
     func goToDetail(_ appInfo: AppInfo) {
         path.append(Route.detail(appInfo))
@@ -26,8 +30,8 @@ class SearchViewModel: ObservableObject {
     }
     
     @MainActor
-    func searchApps() async throws {
-        guard !searchWord.isEmpty,
+    func searchApps(_ word: String) async throws {
+        guard !word.isEmpty,
               !isFetching else {
             return
         }
@@ -36,11 +40,11 @@ class SearchViewModel: ObservableObject {
         lastReached = false
         isFetching = true
         let parameters: [String: Any] = ["country": "us",
-                                         "term": searchWord,
+                                         "term": word,
                                          "limit": 10,
                                          "entity": "software"]
         
-        lastWord = searchWord
+        lastWord = word
         let searchResult: SearchResult = try await NetworkWrapper.shared.byGet(url: "search", params: parameters)
         appInfo = searchResult.results
         offset = appInfo.count
@@ -71,5 +75,25 @@ class SearchViewModel: ObservableObject {
         
         print("new fetched : \(searchResult.results.count)")
         print("total : \(appInfo.count)")
+    }
+    
+    func fetchWords() {
+        words = wordDAO?.fetchWords() ?? []
+    }
+    
+    func insertWord(_ word: Word) {
+        do {
+            try wordDAO?.insertWord(word)
+            words = wordDAO?.fetchWords() ?? []
+        } catch {
+            
+        }
+    }
+    
+    @MainActor
+    func setWordDAO(_ context: ModelContext) {
+        guard wordDAO == nil else { return }
+        
+        wordDAO = WordDAO(modelContext: context)
     }
 }

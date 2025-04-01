@@ -9,11 +9,10 @@ import SwiftUI
 import SwiftData
 
 struct SearchView: View {
-//    @Environment(\.modelContext) private var modelContext
-//    @Query private var items: [Item]
+    @Environment(\.modelContext) private var modelContext
     
-    @State var searchWord: String = ""
     @StateObject var searchViewModel: SearchViewModel
+    @FocusState private var searchFocused: Bool
     
     init(_ searchViewModel: SearchViewModel) {
         _searchViewModel = StateObject(wrappedValue: searchViewModel)
@@ -29,41 +28,62 @@ struct SearchView: View {
                         .foregroundStyle(.gray)
                         .padding(5)
                     TextField("Games, apps, stories and more", text: $searchViewModel.searchWord)
+                        .focused($searchFocused)
                         .onSubmit {
                             Task {
-                                try? await searchViewModel.searchApps()
+                                try? await searchViewModel.searchApps(searchViewModel.searchWord)
+                                let newItem = Word(word: searchViewModel.searchWord, timestamp: .now)
+                                searchViewModel.insertWord(newItem)
+                                print(searchViewModel.words)
                             }
                         }
                 }
                 .background(Color(UIColor.systemGray5))
                 .padding(.horizontal, 20)
                 .padding(.top, 10)
-                
-                ScrollView {
-                    LazyVGrid(columns: columns, spacing: 20) {
-                        ForEach(0..<searchViewModel.appInfo.count, id: \.self) { index in
-                            let appInfo = searchViewModel.appInfo[index]
-                            AppCell(appInfo: appInfo)
-                                .onTapGesture {
-                                    searchViewModel.goToDetail(appInfo)
-                                }
-                            
-                            if index == searchViewModel.appInfo.count - 1 {
-                                Color.clear
-                                    .frame(height: 1)
-                                    .onAppear {
+                if searchFocused && !searchViewModel.words.isEmpty {
+                    ScrollView {
+                        VStack(spacing: 10) {
+                            ForEach(searchViewModel.words.sorted { $0.timestamp > $1.timestamp }) { word in
+                                RecentWordCell(word: word.word)
+                                    .onTapGesture {
                                         Task {
-                                            print("last touched")
-                                            try? await searchViewModel.fetchMore()
+                                            try? await searchViewModel.searchApps(word.word)
+                                            searchFocused = false
                                         }
                                     }
                             }
                         }
                     }
+                    .padding(.horizontal, 20)
+                    Spacer()
+                } else {
+                    ScrollView {
+                        LazyVGrid(columns: columns, spacing: 20) {
+                            ForEach(0..<searchViewModel.appInfo.count, id: \.self) { index in
+                                let appInfo = searchViewModel.appInfo[index]
+                                AppCell(appInfo: appInfo)
+                                    .onTapGesture {
+                                        searchViewModel.goToDetail(appInfo)
+                                    }
+                                
+                                if index == searchViewModel.appInfo.count - 1 {
+                                    Color.clear
+                                        .frame(height: 1)
+                                        .onAppear {
+                                            Task {
+                                                print("last touched")
+                                                try? await searchViewModel.fetchMore()
+                                            }
+                                        }
+                                }
+                            }
+                        }
+                    }
+                    .scrollIndicators(.hidden)
+                    .padding(.horizontal, 20)
+                    Color.clear.frame(height: 1)
                 }
-                .scrollIndicators(.hidden)
-                .padding(.horizontal, 20)
-                Color.clear.frame(height: 1)
             }
             .navigationDestination(for: Route.self) { route in
                 switch route {
@@ -74,10 +94,15 @@ struct SearchView: View {
                 }
             }
         }
+        .onAppear {
+            searchViewModel.setWordDAO(modelContext)
+            searchViewModel.fetchWords()
+            print(searchViewModel.words)
+        }
     }
 }
 
 #Preview {
     SearchView(SearchViewModel())
-        .modelContainer(for: Item.self, inMemory: true)
+        .modelContainer(for: Word.self, inMemory: true)
 }
